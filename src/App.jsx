@@ -1,15 +1,15 @@
 import React from 'react';
-import Landing from './pages/Landing';
-
+import { Outlet } from 'react-router-dom';
+// import Landing from './pages/Landing';
+import DashboardPage from './pages/DashboardPage';
 
 function App() {
-  
-
   return (
     <>
-     <Landing/>
+      {/* This will render the matched child route */}
+      <Outlet />
     </>
-  )
+  );
 }
 
-export default App
+export default App;

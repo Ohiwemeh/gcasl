@@ -1,7 +1,8 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-const SignInForm = () => {
+const  SignInForm = () => {
   return (
     <div className="min-h-screen bg-blue-600 flex flex-col items-center justify-center px-4">
       {/* Logo */}
@@ -54,7 +55,9 @@ const SignInForm = () => {
           </a>
           <span>
             Don’t have an account?{' '}
-            <a href="#" className="text-blue-600 font-semibold hover:underline">Sign Up</a>
+            <Link to="/login">
+              <a className="text-blue-600 font-semibold hover:underline">Sign Up</a>
+            </Link>
           </span>
         </div>
       </div>
