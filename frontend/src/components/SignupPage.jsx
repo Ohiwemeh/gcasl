@@ -1,5 +1,8 @@
 // components/SignupForm.jsx
 import React from 'react';
+import { useState } from 'react';
+import { useUserStore } from '../stores/useUserStore.js';
+import { Link } from "react-router-dom";
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
@@ -89,10 +92,10 @@ const SignupPage = () => {
             Create Account
           </button>
         </form>
-
+{/* 
         <p className="text-center text-sm text-gray-600 mt-4">
           Already have an account? <Link to="/login" className="text-blue-700 font-semibold">Sign In</Link>
-        </p>
+        </p> */}
       </div>
     </div>
   );

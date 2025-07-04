@@ -1,4 +1,4 @@
-import { redis } from "../lib/redis.js";
+import { redis } from "../lib/Redis.js";
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
@@ -34,6 +34,7 @@ const setCookies = (res, accessToken, refreshToken) => {
 };
 
 export const signup = async (req, res) => {
+    console.log("received signup data:", req.body);
     const { email, password, name } = req.body;
     try {
         const userExists = await User.findOne({ email });
