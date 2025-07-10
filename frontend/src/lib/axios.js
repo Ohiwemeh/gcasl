@@ -2,7 +2,7 @@ import axios from "axios";
 
 
 const axiosInstance = axios.create({
-  baseURL: `${import.meta.env.VITE_API_BASE_URL}/api`,
+  baseURL: `${import.meta.env.VITE_API_BASE_URL}`,
     // ? "http://localhost:5000/api"
     // : "/api",,
   withCredentials: true,
@@ -10,7 +10,7 @@ const axiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-});
+}); 
 
 // in lib/axios.js
 axiosInstance.interceptors.response.use(
