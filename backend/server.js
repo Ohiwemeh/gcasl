@@ -9,7 +9,7 @@ import path from "path";
 import authRoutes from "./routes/auth.route.js";
 import verificationRoutes from "./routes/verification.js"; // <-- Admin routes
  import User from './models/user.model.js';  // User model from admin
-import { connectDB } from "./lib/Db.js";
+import { connectDB } from "./lib/db.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
