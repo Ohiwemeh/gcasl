@@ -6,7 +6,7 @@ import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import VerificationPage from "./pages/VerificationPage";
 import AdminRoute from './components/AdminRoute';
-import AdminVerification from './components/AdminVerification';
+import AdminPage from "./pages/AdminPage";
 import Transfer from "./pages/Transfer";
 import { Toaster } from 'react-hot-toast';
 
@@ -37,10 +37,10 @@ console.log("Checking auth:", checkingAuth);
         
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/admin" element={
-          <AdminRoute>
-            <AdminVerification />
-          </AdminRoute>
-        } />
+  <AdminRoute>
+    <AdminPage />
+  </AdminRoute>
+} />
         <Route path="transfer" element={<Transfer />} />
       </Routes>
       <Toaster />
