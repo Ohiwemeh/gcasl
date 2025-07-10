@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
-import { redis } from "../lib/Redis.js";
+import { redis } from "../lib/redis.js";
 import { setCookies } from "../utils/setCookies.js";
 
 import dotenv from "dotenv";
