@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axiosInstance from "../lib/axios";
+import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 
 const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
@@ -54,11 +54,10 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
   const handleBalanceUpdate = async () => {
     try {
       setLoading(true);
-      const res = await axiosInstance.patch(
-  `/users/${localRequest.user._id}/balance`, // ✅ CORRECT: no duplicate /api
-  { balance: Number(newBalance) }
-);
-
+      const res = await axios.patch(
+        `/api/users/${localRequest.user._id}/balance`,
+        { balance: Number(newBalance) }
+      );
       toast.success("Balance updated successfully");
       setEditing(false);
       onUpdate(); // Refresh parent data
@@ -73,12 +72,11 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
       setLoading(false);
     }
   };
-  // 686fb9045283a199d7ee7b99
 
   const handleStatusUpdate = async (status) => {
     try {
       setLoading(true);
-      const res = await axiosInstance.patch(
+      const res = await axios.patch(
         `/verification/${localRequest._id}`,
         { status }
       );

@@ -9,7 +9,7 @@ import path from "path";
 import authRoutes from "./routes/auth.route.js";
 import verificationRoutes from "./routes/verification.js"; // <-- Admin routes
  import User from './models/user.model.js';  // User model from admin
-import { connectDB } from "./lib/db.js";
+import { connectDB } from "./lib/Db.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,7 +17,7 @@ const __dirname = path.resolve();
 
 // ✅ Middleware
 app.use(cors({
-  origin: [process.env.CORS_VALUE ?? 'http://localhost:5173'],
+  origin: "http://localhost:5173",
   credentials: true,
 }));
 app.use(express.json({ limit: "10mb" }));

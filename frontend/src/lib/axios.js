@@ -1,40 +1,37 @@
 import axios from "axios";
 
-
-// const axiosInstance = axios.create({
-//   baseURL: `${import.meta.env.VITE_API_BASE_URL}`,
-//     // ? "http://localhost:5000/api"
-//     // : "/api",,
-//   withCredentials: true,
-//   timeout: 10000, // optional: 10s timeout
-//   headers: {
-//     "Content-Type": "application/json",
-//   },
-// }); 
+// VITE_API_BASE_URL should be: https://gcasl.onrender.com/api
 const axiosInstance = axios.create({
-  baseURL: `${import.meta.env.VITE_API_BASE_URL}`, // already includes https://gcasl.onrender.com
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: true,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
 });
-// in lib/axios.js
+
+// Automatically refresh token if access token expired (401)
 axiosInstance.interceptors.response.use(
-  response => response,
-  async error => {
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
     if (
       error.response?.status === 401 &&
-      !error.config._retry &&
-      error.config.url !== "/auth/login"
+      !originalRequest._retry &&
+      !originalRequest.url.includes("/auth/login")
     ) {
-      error.config._retry = true;
-      await axiosInstance.post("/auth/refresh-token");
-      return axiosInstance(error.config); // retry original request
+      originalRequest._retry = true;
+      try {
+        await axiosInstance.post("/auth/refresh-token");
+        return axiosInstance(originalRequest); // retry original request
+      } catch (refreshError) {
+        return Promise.reject(refreshError);
+      }
     }
+
     return Promise.reject(error);
   }
 );
-
 
 export default axiosInstance;
