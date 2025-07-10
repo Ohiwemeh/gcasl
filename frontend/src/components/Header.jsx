@@ -1,5 +1,6 @@
 // components/Header.jsx
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Header = () => {
   return (
@@ -14,8 +15,8 @@ const Header = () => {
           <a href="#" className="hover:underline">Support</a>
         </nav>
         <div className="flex gap-4">
-          <button className="border border-white px-4 py-1 rounded hover:bg-white hover:text-blue-600 transition">Sign In</button>
-          <button className="font-semibold">Sign Up</button>
+          <Link to="/login"><button className="border border-white px-4 py-1 rounded hover:bg-white hover:text-blue-600 transition">Sign In</button></Link>
+          <Link to="/signup"><button className="font-semibold">Sign Up</button></Link>
         </div>
       </div>
     </header>
