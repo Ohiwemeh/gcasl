@@ -21,7 +21,7 @@ if (import.meta.env.MODE === "development") {
 }
 
 // Request interceptor for debugging
-aaxiosInstance.interceptors.request.use(
+axiosInstance.interceptors.request.use(
   (config) => {
     if (import.meta.env.MODE === "development") {
       console.log("📤 API Request:", {
