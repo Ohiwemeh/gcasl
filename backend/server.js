@@ -17,7 +17,7 @@ const __dirname = path.resolve();
 
 // ✅ Middleware
 app.use(cors({
-  origin: "https://gcasl.vercel.app/", // ✅ Use your frontend URL
+  origin: "https://gcasl.vercel.app/api", // ✅ Use your frontend URL
   credentials: true,
 }));
 app.use(express.json({ limit: "10mb" }));
