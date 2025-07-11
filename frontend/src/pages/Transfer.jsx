@@ -1,9 +1,27 @@
-import { Link } from "react-router-dom";
-import { User } from "lucide-react"; // Adjust if you're using another icon
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { User } from "lucide-react";
+import { useUserStore } from "../stores/useUserStore";
 
 const Transfer = () => {
-  const [accountFrom] = useState("GCash Account - ₱0.00");
+  const { user, checkAuth } = useUserStore();
+  const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) checkAuth();
+  }, []);
+
+  const handleSendMoney = () => {
+    setShowModal(true);
+  };
+
+  const handleVerify = () => {
+    setShowModal(false);
+    navigate("/verification");
+  };
+
+  if (!user) return <p className="text-center mt-10">Loading...</p>;
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center pb-20">
@@ -13,17 +31,18 @@ const Transfer = () => {
           <div className="bg-blue-700 text-white font-bold rounded-full h-8 w-8 flex items-center justify-center">G</div>
           <h2 className="text-blue-700 font-semibold text-lg">Send Money</h2>
         </div>
-        <div>
-          <User className="w-6 h-6 text-gray-700" />
-        </div>
+        <User className="w-6 h-6 text-gray-700" />
       </div>
 
       {/* Form Section */}
-      <form className="bg-white shadow rounded-lg p-5 w-full max-w-md mt-5 space-y-4">
+      <form
+        onSubmit={(e) => e.preventDefault()}
+        className="bg-white shadow rounded-lg p-5 w-full max-w-md mt-5 space-y-4"
+      >
         <div>
           <p className="text-sm font-semibold text-gray-700 mb-1">From</p>
           <select className="w-full border rounded px-3 py-2 text-gray-700 bg-gray-50">
-            <option>{accountFrom}</option>
+            <option>{`GCash Account - ₱${user.balance ?? 0}`}</option>
           </select>
         </div>
 
@@ -57,15 +76,32 @@ const Transfer = () => {
           />
         </div>
 
-        <Link to="/verification">
-          <button
-            type="button"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition"
-          >
-            Send Money
-          </button>
-        </Link>
+        <button
+          type="button"
+          onClick={handleSendMoney}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition"
+        >
+          Send Money
+        </button>
       </form>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-sm w-full text-center shadow">
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">Withdrawal Pending</h2>
+            <p className="text-gray-600 mb-4">
+              You will receive an email shortly with confirmation details.
+            </p>
+            <button
+              onClick={handleVerify}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold"
+            >
+              Verify
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
