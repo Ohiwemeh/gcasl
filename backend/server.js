@@ -17,7 +17,7 @@
 
   // ✅ Middleware
   app.use(cors({
-  origin: "http://localhost:5173", // ✅ FIXED
+  origin: "https://gcasl.vercel.app", // ✅ FIXED
   credentials: true,
 }));
 app.options("*", cors());
