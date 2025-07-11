@@ -7,19 +7,19 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
   const [newBalance, setNewBalance] = useState(0);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [localRequest, setLocalRequest] = useState(null);
+  // const [localRequest, setLocalRequest] = useState(null);
   const [imageLoadErrors, setImageLoadErrors] = useState({});
 
   // Initialize data when request prop changes
   useEffect(() => {
     if (request) {
-      setLocalRequest(request);
+      //setLocalRequest(request);
       setNewBalance(request.user?.balance || 0);
     }
   }, [request]);
 
   // Show loading state if request isn't loaded yet
-  if (!localRequest) {
+  if (!request) {
     return (
       <div className="card" style={{ 
         border: "1px solid #ccc", 
@@ -33,7 +33,7 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
   }
 
   // Show error if user data is missing
-  if (!localRequest.user) {
+  if (!request.user) {
     return (
       <div className="card" style={{ 
         border: "1px solid #ffcccc", 
@@ -44,7 +44,7 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
         <h3>Data Loading Issue</h3>
         <p>Debug information:</p>
         <ul>
-          <li>Request ID: {localRequest._id}</li>
+          <li>Request ID: {request._id}</li>
           <li>User data: Missing</li>
         </ul>
         <button 
@@ -68,12 +68,12 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
     try {
       setLoading(true);
       console.log('🔍 Environment variable:', import.meta.env.VITE_API_BASE_URL);
-      console.log('🔍 User ID:', localRequest.user._id);
-      console.log('🔍 Request path:', `/users/${localRequest.user._id}/balance`);
-      console.log('🔍 Expected full URL:', `${import.meta.env.VITE_API_BASE_URL}/users/${localRequest.user._id}/balance`);
+      console.log('🔍 User ID:', request.user._id);
+      console.log('🔍 Request path:', `/users/${request.user._id}/balance`);
+      console.log('🔍 Expected full URL:', `${import.meta.env.VITE_API_BASE_URL}/users/${request.user._id}/balance`);
       
       const res = await axios.patch(
-        `/users/${localRequest.user._id}/balance`,
+        `/users/${request.user._id}/balance`,
         { balance: Number(newBalance) }
       );
       console.log('✅ Balance update response:', res.data);
@@ -97,7 +97,7 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
     try {
       setLoading(true);
       const res = await axios.patch(
-        `/verification/${localRequest._id}`,
+        `/verification/${request._id}`,
         { status }
       );
       toast.success(`Request ${status}`);
@@ -136,16 +136,16 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
         wordBreak: "break-word",
         marginBottom: "1rem"
       }}>
-        {localRequest.user.name} ({localRequest.user.email})
+        {request.user.name} ({request.user.email})
       </h3>
       
       <p style={{ marginBottom: "1rem" }}>
         Status:{" "}
         <strong style={{ color: 
-          localRequest.status === "approved" ? "green" :
-          localRequest.status === "declined" ? "red" : "orange"
+          request.status === "approved" ? "green" :
+          request.status === "declined" ? "red" : "orange"
         }}>
-          {localRequest.status?.toUpperCase()}
+          {request.status?.toUpperCase()}
         </strong>
       </p>
 
@@ -209,7 +209,7 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
             flexWrap: "wrap"
           }}>
             <span style={{ fontSize: "1.1rem" }}>
-              ₱{Number(localRequest.user.balance).toLocaleString()}
+              ₱{Number(request.user.balance).toLocaleString()}
             </span>
             <button 
               onClick={() => setEditing(true)}
@@ -252,7 +252,7 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
             </div>
           ) : (
             <img 
-              src={localRequest.frontId} 
+              src={request.frontId} 
               alt="Front ID" 
               onError={() => handleImageError('frontId')}
               style={{ 
@@ -267,7 +267,7 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
           )}
           <br />
           <a 
-            href={localRequest.frontId} 
+            href={request.frontId} 
             download 
             target="_blank" 
             rel="noopener noreferrer"
@@ -299,7 +299,7 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
             </div>
           ) : (
             <img 
-              src={localRequest.backId} 
+              src={request.backId} 
               alt="Back ID"
               onError={() => handleImageError('backId')}
               style={{ 
@@ -314,7 +314,7 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
           )}
           <br />
           <a 
-            href={localRequest.backId} 
+            href={request.backId} 
             download 
             target="_blank" 
             rel="noopener noreferrer"
