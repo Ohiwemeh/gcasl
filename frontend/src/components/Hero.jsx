@@ -1,5 +1,6 @@
 // components/Hero.jsx
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   return (
@@ -8,9 +9,11 @@ const Hero = () => {
       <p className="text-lg md:text-xl max-w-xl mx-auto mb-6">
         Secure, convenient banking with tools to help you manage your finances and reach your goals.
       </p>
-      <button className="bg-blue-600 hover:bg-blue-700 transition text-white px-6 py-2 rounded font-semibold">
-        Get Started
-      </button>
+      <Link to="/signup">
+        <button className="bg-blue-600 hover:bg-blue-700 transition text-white px-6 py-2 rounded font-semibold">
+          Get Started
+        </button>
+      </Link>
     </section>
   );
 };

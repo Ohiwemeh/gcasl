@@ -17,7 +17,7 @@ const __dirname = path.resolve();
 
 // ✅ Middleware
 app.use(cors({
-  origin: "https://gcasl.vercel.app",
+  origin: "https://gcasl.vercel.app/", // ✅ Use your frontend URL
   credentials: true,
 }));
 app.use(express.json({ limit: "10mb" }));
@@ -34,7 +34,7 @@ app.use("/api/verification", verificationRoutes); // Admin verification
 // ✅ Extra admin routes from your admin server
 app.post('/api/test-create-user', async (req, res) => {
   try {
-    const { name, email } = req.body;
+    const { name, email, balance = 0 } = req.body;
 
     const user = new User({
       name,
@@ -51,6 +51,9 @@ app.post('/api/test-create-user', async (req, res) => {
 
 app.patch('/api/users/:id/balance', async (req, res) => {
   try {
+    console.log('🔍 Balance update request received:');
+    console.log('User ID:', req.params.id);
+    console.log('New balance:', req.body.balance)
     const { balance } = req.body;
     const { id } = req.params;
 
@@ -61,9 +64,10 @@ app.patch('/api/users/:id/balance', async (req, res) => {
     const user = await User.findByIdAndUpdate(id, { balance }, { new: true });
 
     if (!user) return res.status(404).json({ error: 'User not found' });
-
+console.log('✅ Balance updated successfully:', user.balance);
     res.status(200).json({ message: 'Balance updated', user });
   } catch (err) {
+    console.error('❌ Balance update error:', err);
     res.status(500).json({ error: 'Failed to update balance' });
   }
 });

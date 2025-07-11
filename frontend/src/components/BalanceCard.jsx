@@ -24,9 +24,9 @@ const BalanceCard = () => {
          <p className="text-xs mt-1">Account #: 8275167933</p>
        
       </div>
-      <Link to="/transfer" ><button className="bg-white text-blue-600 px-4 py-1 rounded-full font-semibold text-sm">
+      <button className="bg-white text-blue-600 px-4 py-1 rounded-full font-semibold text-sm">
         + Cash In
-      </button></Link>
+      </button>
     </div>
   </div>
   );

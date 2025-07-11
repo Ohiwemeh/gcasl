@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "../lib/axios";
+import axios from "../lib/axios"
 import { toast } from "react-hot-toast";
 
 const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
@@ -52,26 +52,33 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
   }
 
   const handleBalanceUpdate = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.patch(
-        `/api/users/${localRequest.user._id}/balance`,
-        { balance: Number(newBalance) }
-      );
-      toast.success("Balance updated successfully");
-      setEditing(false);
-      onUpdate(); // Refresh parent data
-    } catch (err) {
-      console.error('Balance update error:', err);
-      toast.error(
-        err.response?.data?.error || 
-        err.response?.data?.message || 
-        "Failed to update balance"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    console.log('🔍 Environment variable:', import.meta.env.VITE_API_BASE_URL);
+    console.log('🔍 User ID:', localRequest.user._id);
+    console.log('🔍 Request path:', `/users/${localRequest.user._id}/balance`);
+    console.log('🔍 Expected full URL:', `${import.meta.env.VITE_API_BASE_URL}/users/${localRequest.user._id}/balance`);
+    
+    const res = await axios.patch(
+      `/users/${localRequest.user._id}/balance`,
+      { balance: Number(newBalance) }
+    );
+    console.log('✅ Balance update response:', res.data);
+    toast.success("Balance updated successfully");
+    setEditing(false);
+    onUpdate(); // Refresh parent data
+  } catch (err) {
+    console.error('Full error details:', err);
+    console.error('Error response:', err.response);
+    toast.error(
+      err.response?.data?.error || 
+      err.response?.data?.message || 
+      "Failed to update balance"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleStatusUpdate = async (status) => {
     try {
