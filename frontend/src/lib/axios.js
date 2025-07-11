@@ -1,32 +1,76 @@
 import axios from "axios";
 
-//VITE_API_BASE_URL should be: https://gcasl.onrender.com/api
+// Mobile-optimized axios configuration
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: true,
-  timeout: 10000,
+  timeout: 30000, // Increased to 30 seconds for mobile
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// const axiosInstance = axios.create({
-//   baseURL: "http://localhost:5000/api", // ✅ Hardcoded for testing
-//   withCredentials: true,
-//   timeout: 10000,
-//   headers: {
-//     "Content-Type": "application/json",
-//   },
-// });
+// Debug logging for mobile
+console.log('🔍 Environment Check:');
+console.log('- Base URL:', import.meta.env.VITE_API_BASE_URL);
+console.log('- User Agent:', navigator.userAgent);
+console.log('- Is Mobile:', /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+console.log('- Screen Width:', window.innerWidth);
+console.log('- Connection:', navigator.connection?.effectiveType || 'unknown');
 
-console.log('🔍 Axios baseURL configured as:', import.meta.env.VITE_API_BASE_URL);
+// Request interceptor for debugging
+axiosInstance.interceptors.request.use(
+  (config) => {
+    console.log('📤 API Request:', {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      fullURL: config.baseURL + config.url,
+      timeout: config.timeout
+    });
+    return config;
+  },
+  (error) => {
+    console.error('📤 Request Error:', error);
+    return Promise.reject(error);
+  }
+);
 
-// Automatically refresh token if access token expired (401)
+// Response interceptor with better mobile error handling
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('📥 API Response:', {
+      status: response.status,
+      url: response.config.url,
+      dataSize: JSON.stringify(response.data).length
+    });
+    return response;
+  },
   async (error) => {
+    console.error('📥 API Error:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      message: error.message,
+      code: error.code,
+      isTimeout: error.code === 'ECONNABORTED',
+      isNetworkError: error.message === 'Network Error'
+    });
+
     const originalRequest = error.config;
 
+    // Handle timeout errors on mobile
+    if (error.code === 'ECONNABORTED') {
+      console.warn('⏱️ Request timed out - this might be a mobile connection issue');
+      return Promise.reject(new Error('Request timed out. Please check your connection and try again.'));
+    }
+
+    // Handle network errors on mobile
+    if (error.message === 'Network Error') {
+      console.warn('🌐 Network error - mobile connection might be unstable');
+      return Promise.reject(new Error('Network connection error. Please check your internet and try again.'));
+    }
+
+    // Token refresh logic
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
@@ -34,9 +78,12 @@ axiosInstance.interceptors.response.use(
     ) {
       originalRequest._retry = true;
       try {
+        console.log('🔄 Attempting token refresh...');
         await axiosInstance.post("/auth/refresh-token");
-        return axiosInstance(originalRequest); // retry original request
+        console.log('✅ Token refreshed successfully');
+        return axiosInstance(originalRequest);
       } catch (refreshError) {
+        console.error('❌ Token refresh failed:', refreshError);
         return Promise.reject(refreshError);
       }
     }
