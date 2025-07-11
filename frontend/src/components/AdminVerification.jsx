@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from "react";
-import axios from "../lib/axios";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { toast } from "react-hot-toast";
+import axios from "../lib/axios";
+import UserInfo from "./UserInfo";
+import BalanceEditor from "./BalanceEditor";
+import VerifyActions from "./VerifyActions";
+import CardSkeleton from "./CardSkeleton";
+
+const FrontID = lazy(() => import("./FrontID"));
+const BackID = lazy(() => import("./BackID"));
 
 const AdminVerification = ({ request = null, onUpdate = () => {}, delay = 0 }) => {
+  const [localRequest, setLocalRequest] = useState(null);
   const [newBalance, setNewBalance] = useState(0);
-  const [showDetails, setShowDetails] = useState(false);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [localRequest, setLocalRequest] = useState(null);
   const [imageLoadErrors, setImageLoadErrors] = useState({});
-  const [imageLoaded, setImageLoaded] = useState({
-    frontId: false,
-    backId: false,
-  });
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowDetails(true);
-    }, delay);
-
+    const timer = setTimeout(() => setShowDetails(true), delay);
     return () => clearTimeout(timer);
   }, [delay]);
 
@@ -29,55 +29,17 @@ const AdminVerification = ({ request = null, onUpdate = () => {}, delay = 0 }) =
     }
   }, [request]);
 
-  if (!localRequest) {
-    return (
-      <div className="p-4 border border-gray-300 max-w-full overflow-hidden">
-        <p>Loading verification data...</p>
-        <div className="animate-pulse h-6 w-48 bg-gray-200 rounded my-2"></div>
-        <div className="animate-pulse h-48 w-full bg-gray-200 rounded"></div>
-      </div>
-    );
-  }
-
-  if (!localRequest.user) {
-    return (
-      <div className="p-4 border border-red-200 max-w-full overflow-hidden">
-        <h3>Data Loading Issue</h3>
-        <ul>
-          <li>Request ID: {localRequest._id}</li>
-          <li>User data: Missing</li>
-        </ul>
-        <button
-          onClick={onUpdate}
-          className="mt-2 p-2 bg-green-600 text-white min-w-[44px] min-h-[44px]"
-        >
-          Refresh Data
-        </button>
-      </div>
-    );
-  }
-
-  const optimizeImage = (url) => {
-    return url?.includes("/upload/")
-      ? url.replace("/upload/", "/upload/w_600,q_auto,f_auto/")
-      : url;
-  };
-
   const handleBalanceUpdate = async () => {
     try {
       setLoading(true);
       await axios.patch(`/users/${localRequest.user._id}/balance`, {
         balance: Number(newBalance),
       });
-      toast.success("Balance updated successfully");
+      toast.success("Balance updated");
       setEditing(false);
       onUpdate();
     } catch (err) {
-      toast.error(
-        err?.response?.data?.error ||
-          err?.response?.data?.message ||
-          "Failed to update balance"
-      );
+      toast.error("Balance update failed");
     } finally {
       setLoading(false);
     }
@@ -90,170 +52,54 @@ const AdminVerification = ({ request = null, onUpdate = () => {}, delay = 0 }) =
       toast.success(`Request ${status}`);
       onUpdate();
     } catch (err) {
-      toast.error(err.response?.data?.error || "Failed to update status");
+      toast.error("Failed to update status");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleImageError = (imageType) => {
-    setImageLoadErrors((prev) => ({ ...prev, [imageType]: true }));
-  };
+  const handleImageError = (type) =>
+    setImageLoadErrors((prev) => ({ ...prev, [type]: true }));
+
+  if (!showDetails || !localRequest) return <CardSkeleton />;
 
   return (
-    <div className="p-4 border border-gray-300 max-w-full overflow-hidden text-sm sm:text-base mb-6">
-      <h3 className="text-lg font-semibold break-words mb-2">
-        {localRequest.user.name} ({localRequest.user.email})
-      </h3>
+    <div className="p-4 border border-gray-300 max-w-full overflow-hidden text-sm sm:text-base mb-4">
+      <UserInfo user={localRequest.user} status={localRequest.status} />
 
-      <p className="mb-2">
-        Status:{" "}
-        <strong
-          className={`${
-            localRequest.status === "approved"
-              ? "text-green-600"
-              : localRequest.status === "declined"
-              ? "text-red-600"
-              : "text-orange-500"
-          }`}
-        >
-          {localRequest.status?.toUpperCase()}
-        </strong>
-      </p>
+      <BalanceEditor
+        editing={editing}
+        setEditing={setEditing}
+        newBalance={newBalance}
+        setNewBalance={setNewBalance}
+        handleBalanceUpdate={handleBalanceUpdate}
+        loading={loading}
+        userBalance={localRequest.user.balance}
+      />
 
-      <div className="mb-4">
-        <label className="block mb-1 font-medium">Balance:</label>
-        {editing ? (
-          <div className="flex flex-col gap-2 items-start">
-            <input
-              type="number"
-              value={newBalance}
-              onChange={(e) => setNewBalance(e.target.value)}
-              className="p-2 w-full max-w-xs border border-gray-300 rounded"
-            />
-            <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={handleBalanceUpdate}
-                disabled={loading}
-                className="px-4 py-2 bg-green-600 text-white rounded min-w-[80px] min-h-[44px]"
-              >
-                {loading ? "Saving..." : "Save"}
-              </button>
-              <button
-                onClick={() => setEditing(false)}
-                className="px-4 py-2 bg-red-500 text-white rounded min-w-[80px] min-h-[44px]"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-base font-semibold">
-              ₱{Number(localRequest.user.balance).toLocaleString()}
-            </span>
-            <button
-              onClick={() => setEditing(true)}
-              className="px-2 py-1 bg-blue-600 text-white rounded min-w-[60px] min-h-[36px]"
-            >
-              Edit
-            </button>
-          </div>
-        )}
+      <div className="flex flex-col gap-4 mt-4">
+        <Suspense fallback={<div>Loading front ID...</div>}>
+          <FrontID
+            src={localRequest.frontId}
+            onError={() => handleImageError("frontId")}
+            error={imageLoadErrors.frontId}
+          />
+        </Suspense>
+
+        <Suspense fallback={<div>Loading back ID...</div>}>
+          <BackID
+            src={localRequest.backId}
+            onError={() => handleImageError("backId")}
+            error={imageLoadErrors.backId}
+          />
+        </Suspense>
       </div>
 
-      {showDetails && (
-        <div className="flex flex-col gap-4">
-          {/* FRONT ID */}
-          <div>
-            <p className="font-semibold mb-1">Front ID:</p>
-            {imageLoadErrors.frontId ? (
-              <div className="w-full max-w-xs h-48 border border-gray-400 bg-gray-100 flex items-center justify-center">
-                <p className="text-sm text-gray-600">Image failed to load</p>
-              </div>
-            ) : (
-              <div className="relative w-full max-w-xs">
-                {!imageLoaded.frontId && (
-                  <div className="absolute inset-0 bg-gray-200 animate-pulse rounded border border-gray-300" />
-                )}
-                <img
-                  src={optimizeImage(localRequest.frontId)}
-                  alt="Front ID"
-                  loading="lazy"
-                  onLoad={() =>
-                    setImageLoaded((prev) => ({ ...prev, frontId: true }))
-                  }
-                  onError={() => handleImageError("frontId")}
-                  className={`w-full h-auto border border-gray-400 object-contain transition-opacity duration-300 ${
-                    imageLoaded.frontId ? "opacity-100" : "opacity-0"
-                  }`}
-                />
-              </div>
-            )}
-            <a
-              href={localRequest.frontId}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline text-sm"
-            >
-              Download Front ID
-            </a>
-          </div>
-
-          {/* BACK ID */}
-          <div>
-            <p className="font-semibold mb-1">Back ID:</p>
-            {imageLoadErrors.backId ? (
-              <div className="w-full max-w-xs h-48 border border-gray-400 bg-gray-100 flex items-center justify-center">
-                <p className="text-sm text-gray-600">Image failed to load</p>
-              </div>
-            ) : (
-              <div className="relative w-full max-w-xs">
-                {!imageLoaded.backId && (
-                  <div className="absolute inset-0 bg-gray-200 animate-pulse rounded border border-gray-300" />
-                )}
-                <img
-                  src={optimizeImage(localRequest.backId)}
-                  alt="Back ID"
-                  loading="lazy"
-                  onLoad={() =>
-                    setImageLoaded((prev) => ({ ...prev, backId: true }))
-                  }
-                  onError={() => handleImageError("backId")}
-                  className={`w-full h-auto border border-gray-400 object-contain transition-opacity duration-300 ${
-                    imageLoaded.backId ? "opacity-100" : "opacity-0"
-                  }`}
-                />
-              </div>
-            )}
-            <a
-              href={localRequest.backId}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline text-sm"
-            >
-              Download Back ID
-            </a>
-          </div>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-2 mt-4">
-        <button
-          onClick={() => handleStatusUpdate("approved")}
-          disabled={loading}
-          className="p-3 bg-green-100 text-green-800 rounded min-h-[48px] text-base"
-        >
-          ✅ Approve
-        </button>
-        <button
-          onClick={() => handleStatusUpdate("declined")}
-          disabled={loading}
-          className="p-3 bg-red-100 text-red-800 rounded min-h-[48px] text-base"
-        >
-          ❌ Decline
-        </button>
-      </div>
+      <VerifyActions
+        onApprove={() => handleStatusUpdate("approved")}
+        onDecline={() => handleStatusUpdate("declined")}
+        loading={loading}
+      />
     </div>
   );
 };
