@@ -11,29 +11,36 @@ const axiosInstance = axios.create({
 });
 
 // Debug logging for mobile
-console.log('🔍 Environment Check:');
-console.log('- Base URL:', import.meta.env.VITE_API_BASE_URL);
-console.log('- User Agent:', navigator.userAgent);
-console.log('- Is Mobile:', /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
-console.log('- Screen Width:', window.innerWidth);
-console.log('- Connection:', navigator.connection?.effectiveType || 'unknown');
+if (import.meta.env.MODE === "development") {
+  console.log("🔍 Environment Check:");
+  console.log("- Base URL:", import.meta.env.VITE_API_BASE_URL);
+  console.log("- User Agent:", navigator.userAgent);
+  console.log("- Is Mobile:", /Android|webOS|iPhone|.../.test(navigator.userAgent));
+  console.log("- Screen Width:", window.innerWidth);
+  console.log("- Connection:", navigator.connection?.effectiveType || "unknown");
+}
 
 // Request interceptor for debugging
-axiosInstance.interceptors.request.use(
+aaxiosInstance.interceptors.request.use(
   (config) => {
-    console.log('📤 API Request:', {
-      method: config.method?.toUpperCase(),
-      url: config.url,
-      fullURL: config.baseURL + config.url,
-      timeout: config.timeout
-    });
+    if (import.meta.env.MODE === "development") {
+      console.log("📤 API Request:", {
+        method: config.method?.toUpperCase(),
+        url: config.url,
+        fullURL: config.baseURL + config.url,
+        timeout: config.timeout,
+      });
+    }
     return config;
   },
   (error) => {
-    console.error('📤 Request Error:', error);
+    if (import.meta.env.MODE === "development") {
+      console.error("📤 Request Error:", error);
+    }
     return Promise.reject(error);
   }
 );
+
 
 // Response interceptor with better mobile error handling
 axiosInstance.interceptors.response.use(

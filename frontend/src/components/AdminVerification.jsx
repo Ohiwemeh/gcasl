@@ -1,62 +1,42 @@
 import React, { useState, useEffect } from "react";
-import axios from "../lib/axios"
+import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 
 const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
-  // State initialization with better defaults
   const [newBalance, setNewBalance] = useState(0);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  // const [localRequest, setLocalRequest] = useState(null);
+  const [localRequest, setLocalRequest] = useState(null);
   const [imageLoadErrors, setImageLoadErrors] = useState({});
 
-  // Initialize data when request prop changes
   useEffect(() => {
     if (request) {
-      //setLocalRequest(request);
+      setLocalRequest(request);
       setNewBalance(request.user?.balance || 0);
     }
   }, [request]);
 
-  // Show loading state if request isn't loaded yet
-  if (!request) {
+  if (!localRequest) {
     return (
-      <div className="card" style={{ 
-        border: "1px solid #ccc", 
-        padding: "1rem",
-        maxWidth: "100%",
-        overflow: "hidden"
-      }}>
+      <div className="p-4 border border-gray-300 max-w-full overflow-hidden">
         <p>Loading verification data...</p>
+        <div className="animate-pulse h-6 w-48 bg-gray-200 rounded my-2"></div>
+        <div className="animate-pulse h-48 w-full bg-gray-200 rounded"></div>
       </div>
     );
   }
 
-  // Show error if user data is missing
-  if (!request.user) {
+  if (!localRequest.user) {
     return (
-      <div className="card" style={{ 
-        border: "1px solid #ffcccc", 
-        padding: "1rem",
-        maxWidth: "100%",
-        overflow: "hidden"
-      }}>
+      <div className="p-4 border border-red-200 max-w-full overflow-hidden">
         <h3>Data Loading Issue</h3>
-        <p>Debug information:</p>
         <ul>
-          <li>Request ID: {request._id}</li>
+          <li>Request ID: {localRequest._id}</li>
           <li>User data: Missing</li>
         </ul>
-        <button 
+        <button
           onClick={onUpdate}
-          style={{
-            padding: "0.5rem",
-            backgroundColor: "#4CAF50",
-            color: "white",
-            border: "none",
-            minHeight: "44px", // Better touch target
-            minWidth: "44px"
-          }}
+          className="mt-2 p-2 bg-green-600 text-white min-w-[44px] min-h-[44px]"
         >
           Refresh Data
         </button>
@@ -64,29 +44,27 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
     );
   }
 
+  const optimizeImage = (url) => {
+    return url?.includes("/upload/")
+      ? url.replace("/upload/", "/upload/w_600,q_auto,f_auto/")
+      : url;
+  };
+
   const handleBalanceUpdate = async () => {
     try {
       setLoading(true);
-      console.log('🔍 Environment variable:', import.meta.env.VITE_API_BASE_URL);
-      console.log('🔍 User ID:', request.user._id);
-      console.log('🔍 Request path:', `/users/${request.user._id}/balance`);
-      console.log('🔍 Expected full URL:', `${import.meta.env.VITE_API_BASE_URL}/users/${request.user._id}/balance`);
-      
       const res = await axios.patch(
-        `/users/${request.user._id}/balance`,
+        `/users/${localRequest.user._id}/balance`,
         { balance: Number(newBalance) }
       );
-      console.log('✅ Balance update response:', res.data);
       toast.success("Balance updated successfully");
       setEditing(false);
-      onUpdate(); // Refresh parent data
+      onUpdate();
     } catch (err) {
-      console.error('Full error details:', err);
-      console.error('Error response:', err.response);
       toast.error(
-        err.response?.data?.error || 
-        err.response?.data?.message || 
-        "Failed to update balance"
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "Failed to update balance"
       );
     } finally {
       setLoading(false);
@@ -96,10 +74,7 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
   const handleStatusUpdate = async (status) => {
     try {
       setLoading(true);
-      const res = await axios.patch(
-        `/verification/${request._id}`,
-        { status }
-      );
+      await axios.patch(`/verification/${localRequest._id}`, { status });
       toast.success(`Request ${status}`);
       onUpdate();
     } catch (err) {
@@ -110,117 +85,64 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
   };
 
   const handleImageError = (imageType) => {
-    setImageLoadErrors(prev => ({
-      ...prev,
-      [imageType]: true
-    }));
-  };
-
-  const cardStyle = {
-    border: "1px solid #ccc",
-    marginBottom: "1rem",
-    padding: "1rem",
-    maxWidth: "100%",
-    overflow: "hidden",
-    // Mobile-specific styles
-    '@media (max-width: 768px)': {
-      padding: "0.5rem",
-      fontSize: "14px"
-    }
+    setImageLoadErrors((prev) => ({ ...prev, [imageType]: true }));
   };
 
   return (
-    <div className="card" style={cardStyle}>
-      <h3 style={{ 
-        fontSize: "1.2rem",
-        wordBreak: "break-word",
-        marginBottom: "1rem"
-      }}>
-        {request.user.name} ({request.user.email})
+    <div className="p-4 border border-gray-300 max-w-full overflow-hidden text-sm sm:text-base">
+      <h3 className="text-lg font-semibold break-words mb-2">
+        {localRequest.user.name} ({localRequest.user.email})
       </h3>
-      
-      <p style={{ marginBottom: "1rem" }}>
+
+      <p className="mb-2">
         Status:{" "}
-        <strong style={{ color: 
-          request.status === "approved" ? "green" :
-          request.status === "declined" ? "red" : "orange"
-        }}>
-          {request.status?.toUpperCase()}
+        <strong
+          className={`${
+            localRequest.status === "approved"
+              ? "text-green-600"
+              : localRequest.status === "declined"
+              ? "text-red-600"
+              : "text-orange-500"
+          }`}
+        >
+          {localRequest.status?.toUpperCase()}
         </strong>
       </p>
 
-      <div style={{ margin: "1rem 0" }}>
-        <label style={{ display: "block", marginBottom: "0.5rem" }}>Balance:</label>
+      <div className="mb-4">
+        <label className="block mb-1 font-medium">Balance:</label>
         {editing ? (
-          <div style={{ 
-            display: "flex", 
-            flexDirection: "column", 
-            gap: "0.5rem",
-            alignItems: "flex-start"
-          }}>
+          <div className="flex flex-col gap-2 items-start">
             <input
               type="number"
               value={newBalance}
               onChange={(e) => setNewBalance(e.target.value)}
-              style={{ 
-                padding: "0.5rem", 
-                width: "100%",
-                maxWidth: "200px",
-                minHeight: "44px", // Better touch target
-                fontSize: "16px" // Prevents zoom on iOS
-              }}
+              className="p-2 w-full max-w-xs border border-gray-300 rounded"
             />
-            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-              <button 
+            <div className="flex gap-2 flex-wrap">
+              <button
                 onClick={handleBalanceUpdate}
                 disabled={loading}
-                style={{ 
-                  padding: "0.5rem 1rem",
-                  backgroundColor: "#4CAF50",
-                  color: "white",
-                  border: "none",
-                  cursor: loading ? "not-allowed" : "pointer",
-                  minHeight: "44px",
-                  minWidth: "80px"
-                }}
+                className="px-4 py-2 bg-green-600 text-white rounded min-w-[80px] min-h-[44px]"
               >
                 {loading ? "Saving..." : "Save"}
               </button>
-              <button 
+              <button
                 onClick={() => setEditing(false)}
-                style={{ 
-                  padding: "0.5rem 1rem",
-                  backgroundColor: "#f44336",
-                  color: "white",
-                  border: "none",
-                  minHeight: "44px",
-                  minWidth: "80px"
-                }}
+                className="px-4 py-2 bg-red-500 text-white rounded min-w-[80px] min-h-[44px]"
               >
                 Cancel
               </button>
             </div>
           </div>
         ) : (
-          <div style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            gap: "0.5rem",
-            flexWrap: "wrap"
-          }}>
-            <span style={{ fontSize: "1.1rem" }}>
-              ₱{Number(request.user.balance).toLocaleString()}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-base font-semibold">
+              ₱{Number(localRequest.user.balance).toLocaleString()}
             </span>
-            <button 
+            <button
               onClick={() => setEditing(true)}
-              style={{ 
-                padding: "0.25rem 0.5rem",
-                backgroundColor: "#2196F3",
-                color: "white",
-                border: "none",
-                minHeight: "36px",
-                minWidth: "60px"
-              }}
+              className="px-2 py-1 bg-blue-600 text-white rounded min-w-[60px] min-h-[36px]"
             >
               Edit
             </button>
@@ -228,139 +150,72 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
         )}
       </div>
 
-      <div style={{ 
-        display: "flex", 
-        flexDirection: "column",
-        gap: "1rem", 
-        margin: "1rem 0"
-      }}>
-        <div style={{ width: "100%" }}>
-          <p style={{ marginBottom: "0.5rem", fontWeight: "bold" }}>Front ID:</p>
+      <div className="flex flex-col gap-4">
+        {/* FRONT ID */}
+        <div>
+          <p className="font-semibold mb-1">Front ID:</p>
           {imageLoadErrors.frontId ? (
-            <div style={{ 
-              width: "100%", 
-              maxWidth: "300px",
-              height: "200px",
-              border: "1px solid #aaa",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#f5f5f5",
-              marginBottom: "0.5rem"
-            }}>
+            <div className="w-full max-w-xs h-48 border border-gray-400 bg-gray-100 flex items-center justify-center">
               <p>Image failed to load</p>
             </div>
           ) : (
-            <img 
-              src={request.frontId} 
-              alt="Front ID" 
-              onError={() => handleImageError('frontId')}
-              style={{ 
-                width: "100%",
-                maxWidth: "300px",
-                height: "auto",
-                border: "1px solid #aaa", 
-                marginBottom: "0.5rem",
-                objectFit: "contain"
-              }} 
+            <img
+              src={optimizeImage(localRequest.frontId)}
+              alt="Front ID"
+              loading="lazy"
+              onError={() => handleImageError("frontId")}
+              className="w-full max-w-xs h-auto border border-gray-400 object-contain"
             />
           )}
-          <br />
-          <a 
-            href={request.frontId} 
-            download 
-            target="_blank" 
+          <a
+            href={localRequest.frontId}
+            target="_blank"
             rel="noopener noreferrer"
-            style={{ 
-              color: "#2196F3",
-              textDecoration: "underline",
-              fontSize: "14px"
-            }}
+            className="text-blue-600 underline text-sm"
           >
             Download Front ID
           </a>
         </div>
-        
-        <div style={{ width: "100%" }}>
-          <p style={{ marginBottom: "0.5rem", fontWeight: "bold" }}>Back ID:</p>
+
+        {/* BACK ID */}
+        <div>
+          <p className="font-semibold mb-1">Back ID:</p>
           {imageLoadErrors.backId ? (
-            <div style={{ 
-              width: "100%", 
-              maxWidth: "300px",
-              height: "200px",
-              border: "1px solid #aaa",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#f5f5f5",
-              marginBottom: "0.5rem"
-            }}>
+            <div className="w-full max-w-xs h-48 border border-gray-400 bg-gray-100 flex items-center justify-center">
               <p>Image failed to load</p>
             </div>
           ) : (
-            <img 
-              src={request.backId} 
+            <img
+              src={optimizeImage(localRequest.backId)}
               alt="Back ID"
-              onError={() => handleImageError('backId')}
-              style={{ 
-                width: "100%",
-                maxWidth: "300px",
-                height: "auto",
-                border: "1px solid #aaa", 
-                marginBottom: "0.5rem",
-                objectFit: "contain"
-              }} 
+              loading="lazy"
+              onError={() => handleImageError("backId")}
+              className="w-full max-w-xs h-auto border border-gray-400 object-contain"
             />
           )}
-          <br />
-          <a 
-            href={request.backId} 
-            download 
-            target="_blank" 
+          <a
+            href={localRequest.backId}
+            target="_blank"
             rel="noopener noreferrer"
-            style={{ 
-              color: "#2196F3",
-              textDecoration: "underline",
-              fontSize: "14px"
-            }}
+            className="text-blue-600 underline text-sm"
           >
             Download Back ID
           </a>
         </div>
       </div>
 
-      <div style={{ 
-        display: "flex", 
-        gap: "1rem",
-        flexDirection: "column"
-      }}>
+      <div className="flex flex-col gap-2 mt-4">
         <button
           onClick={() => handleStatusUpdate("approved")}
           disabled={loading}
-          style={{ 
-            padding: "0.75rem",
-            backgroundColor: "#d1ffd1",
-            border: "none",
-            cursor: loading ? "not-allowed" : "pointer",
-            minHeight: "48px",
-            fontSize: "16px",
-            borderRadius: "4px"
-          }}
+          className="p-3 bg-green-100 text-green-800 rounded min-h-[48px] text-base"
         >
           ✅ Approve
         </button>
         <button
           onClick={() => handleStatusUpdate("declined")}
           disabled={loading}
-          style={{ 
-            padding: "0.75rem",
-            backgroundColor: "#ffd1d1",
-            border: "none",
-            cursor: loading ? "not-allowed" : "pointer",
-            minHeight: "48px",
-            fontSize: "16px",
-            borderRadius: "4px"
-          }}
+          className="p-3 bg-red-100 text-red-800 rounded min-h-[48px] text-base"
         >
           ❌ Decline
         </button>
