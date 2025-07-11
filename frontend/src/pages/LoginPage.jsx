@@ -10,11 +10,16 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+
+  try {
     const success = await login(email, password);
     console.log("Login success:", success);
+
     if (success) {
       const { user } = useUserStore.getState(); // Access user from store
       if (user?.role === "admin") {
@@ -23,7 +28,12 @@ const LoginPage = () => {
         navigate("/dashboard");
       }
     }
-  };
+  } catch (error) {
+    console.error("Login error:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
 
 
@@ -73,12 +83,40 @@ const LoginPage = () => {
             <label htmlFor="remember" className="text-sm">Remember me</label>
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded"
-          >
-            Sign In
-          </button>
+        <button
+  type="submit"
+  disabled={loading}
+  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold py-3 rounded-md text-base sm:text-lg min-h-[48px] transition-all flex items-center justify-center"
+>
+  {loading ? (
+    <>
+      <svg
+        className="animate-spin h-5 w-5 mr-2 text-white"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+        ></circle>
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 000 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
+        ></path>
+      </svg>
+      Signing In...
+    </>
+  ) : (
+    "Sign In"
+  )}
+</button>
+
         </form>
 
         <div className="text-center mt-4 text-sm">
