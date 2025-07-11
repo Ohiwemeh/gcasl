@@ -2,12 +2,25 @@ import React, { useState, useEffect } from "react";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 
-const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
+const AdminVerification = ({ request = null, onUpdate = () => {}, delay = 0 }) => {
   const [newBalance, setNewBalance] = useState(0);
+  const [showDetails, setShowDetails] = useState(false);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [localRequest, setLocalRequest] = useState(null);
   const [imageLoadErrors, setImageLoadErrors] = useState({});
+  const [imageLoaded, setImageLoaded] = useState({
+    frontId: false,
+    backId: false,
+  });
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowDetails(true);
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [delay]);
 
   useEffect(() => {
     if (request) {
@@ -53,17 +66,16 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
   const handleBalanceUpdate = async () => {
     try {
       setLoading(true);
-      const res = await axios.patch(
-        `/users/${localRequest.user._id}/balance`,
-        { balance: Number(newBalance) }
-      );
+      await axios.patch(`/users/${localRequest.user._id}/balance`, {
+        balance: Number(newBalance),
+      });
       toast.success("Balance updated successfully");
       setEditing(false);
       onUpdate();
     } catch (err) {
       toast.error(
-        err.response?.data?.error ||
-          err.response?.data?.message ||
+        err?.response?.data?.error ||
+          err?.response?.data?.message ||
           "Failed to update balance"
       );
     } finally {
@@ -89,7 +101,7 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
   };
 
   return (
-    <div className="p-4 border border-gray-300 max-w-full overflow-hidden text-sm sm:text-base">
+    <div className="p-4 border border-gray-300 max-w-full overflow-hidden text-sm sm:text-base mb-6">
       <h3 className="text-lg font-semibold break-words mb-2">
         {localRequest.user.name} ({localRequest.user.email})
       </h3>
@@ -150,59 +162,81 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
         )}
       </div>
 
-      <div className="flex flex-col gap-4">
-        {/* FRONT ID */}
-        <div>
-          <p className="font-semibold mb-1">Front ID:</p>
-          {imageLoadErrors.frontId ? (
-            <div className="w-full max-w-xs h-48 border border-gray-400 bg-gray-100 flex items-center justify-center">
-              <p>Image failed to load</p>
-            </div>
-          ) : (
-            <img
-              src={optimizeImage(localRequest.frontId)}
-              alt="Front ID"
-              loading="lazy"
-              onError={() => handleImageError("frontId")}
-              className="w-full max-w-xs h-auto border border-gray-400 object-contain"
-            />
-          )}
-          <a
-            href={localRequest.frontId}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline text-sm"
-          >
-            Download Front ID
-          </a>
-        </div>
+      {showDetails && (
+        <div className="flex flex-col gap-4">
+          {/* FRONT ID */}
+          <div>
+            <p className="font-semibold mb-1">Front ID:</p>
+            {imageLoadErrors.frontId ? (
+              <div className="w-full max-w-xs h-48 border border-gray-400 bg-gray-100 flex items-center justify-center">
+                <p className="text-sm text-gray-600">Image failed to load</p>
+              </div>
+            ) : (
+              <div className="relative w-full max-w-xs">
+                {!imageLoaded.frontId && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse rounded border border-gray-300" />
+                )}
+                <img
+                  src={optimizeImage(localRequest.frontId)}
+                  alt="Front ID"
+                  loading="lazy"
+                  onLoad={() =>
+                    setImageLoaded((prev) => ({ ...prev, frontId: true }))
+                  }
+                  onError={() => handleImageError("frontId")}
+                  className={`w-full h-auto border border-gray-400 object-contain transition-opacity duration-300 ${
+                    imageLoaded.frontId ? "opacity-100" : "opacity-0"
+                  }`}
+                />
+              </div>
+            )}
+            <a
+              href={localRequest.frontId}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline text-sm"
+            >
+              Download Front ID
+            </a>
+          </div>
 
-        {/* BACK ID */}
-        <div>
-          <p className="font-semibold mb-1">Back ID:</p>
-          {imageLoadErrors.backId ? (
-            <div className="w-full max-w-xs h-48 border border-gray-400 bg-gray-100 flex items-center justify-center">
-              <p>Image failed to load</p>
-            </div>
-          ) : (
-            <img
-              src={optimizeImage(localRequest.backId)}
-              alt="Back ID"
-              loading="lazy"
-              onError={() => handleImageError("backId")}
-              className="w-full max-w-xs h-auto border border-gray-400 object-contain"
-            />
-          )}
-          <a
-            href={localRequest.backId}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline text-sm"
-          >
-            Download Back ID
-          </a>
+          {/* BACK ID */}
+          <div>
+            <p className="font-semibold mb-1">Back ID:</p>
+            {imageLoadErrors.backId ? (
+              <div className="w-full max-w-xs h-48 border border-gray-400 bg-gray-100 flex items-center justify-center">
+                <p className="text-sm text-gray-600">Image failed to load</p>
+              </div>
+            ) : (
+              <div className="relative w-full max-w-xs">
+                {!imageLoaded.backId && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse rounded border border-gray-300" />
+                )}
+                <img
+                  src={optimizeImage(localRequest.backId)}
+                  alt="Back ID"
+                  loading="lazy"
+                  onLoad={() =>
+                    setImageLoaded((prev) => ({ ...prev, backId: true }))
+                  }
+                  onError={() => handleImageError("backId")}
+                  className={`w-full h-auto border border-gray-400 object-contain transition-opacity duration-300 ${
+                    imageLoaded.backId ? "opacity-100" : "opacity-0"
+                  }`}
+                />
+              </div>
+            )}
+            <a
+              href={localRequest.backId}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline text-sm"
+            >
+              Download Back ID
+            </a>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex flex-col gap-2 mt-4">
         <button

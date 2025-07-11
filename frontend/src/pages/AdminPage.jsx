@@ -32,11 +32,12 @@ const AdminPage = () => {
       {requests.length === 0 ? (
         <p>No verification requests found.</p>
       ) : (
-        requests.map((req) => (
+        requests.map((req, index) => (
           <AdminVerification
             key={req._id}
             request={req}
             onUpdate={fetchRequests}
+            delay={index * 300} // Optional delay for better UX
           />
         ))
       )}
