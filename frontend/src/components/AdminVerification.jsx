@@ -149,7 +149,7 @@ const AdminVerification = ({ request = null, onUpdate = () => {} }) => {
           </div>
         ) : (
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem" }}>
-            <span>₦{Number(localRequest.user.balance).toLocaleString()}</span>
+            <span>₱{Number(localRequest.user.balance).toLocaleString()}</span>
             <button 
               onClick={() => setEditing(true)}
               style={{ 
