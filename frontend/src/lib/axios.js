@@ -4,7 +4,7 @@ import axios from "axios";
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: true,
-  timeout: 30000, // Increased to 30 seconds for mobile
+  timeout: 60 * 1000 * 2, // Increased to 60 seconds for mobile
   headers: {
     "Content-Type": "application/json",
   },
