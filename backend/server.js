@@ -17,7 +17,7 @@
 
   // ✅ Middleware
   app.use(cors({
-  origin: "https://gcasl.vercel.app", // ✅ FIXED
+  origin: "https://gcasl1.onrender.com", // ✅ FIXED
   credentials: true,
 }));
 app.options("*", cors());
