@@ -1,129 +1,102 @@
 // src/pages/AdminPage.jsx
 import React, { useEffect, useState } from "react";
-import axiosInstance from "../lib/axios";
+import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 
 const AdminPage = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [statusUpdating, setStatusUpdating] = useState(null);
-  const [balanceUpdating, setBalanceUpdating] = useState(null);
-  const [editBalanceId, setEditBalanceId] = useState(null);
-  const [balances, setBalances] = useState({});
-
-  const fetchRequests = async () => {
-    try {
-      const { data } = await axiosInstance.get("/verification");
-      setRequests(data.data);
-    } catch (err) {
-      toast.error("Failed to fetch verification requests");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleBalanceChange = (userId, value) => {
-    setBalances((prev) => ({ ...prev, [userId]: value }));
-  };
-
-  const updateBalance = async (userId) => {
-    try {
-      setBalanceUpdating(userId);
-      await axiosInstance.patch(`/users/${userId}/balance`, {
-        balance: Number(balances[userId]),
-      });
-      toast.success("Balance updated");
-      fetchRequests();
-      setEditBalanceId(null);
-    } catch {
-      toast.error("Failed to update balance");
-    } finally {
-      setBalanceUpdating(null);
-    }
-  };
-
-  const updateStatus = async (id, status) => {
-    try {
-      setStatusUpdating(id);
-      await axiosInstance.patch(`/verification/${id}`, { status });
-      toast.success(`Marked as ${status}`);
-      fetchRequests();
-    } catch {
-      toast.error("Failed to update status");
-    } finally {
-      setStatusUpdating(null);
-    }
-  };
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const { data } = await axios.get("/verification");
+        setRequests(data.data);
+      } catch (err) {
+        setError("Failed to fetch data");
+        toast.error("Failed to fetch verification requests");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchRequests();
   }, []);
 
   if (loading) return <div className="p-4">Loading admin dashboard...</div>;
+  if (error) return <div className="p-4 text-red-500">{error}</div>;
 
   return (
-    <div className="p-4 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Admin Verification Dashboard</h1>
+    <div className="p-4">
+      <h2 className="text-xl font-semibold mb-4">Admin Verification Dashboard</h2>
       {requests.length === 0 ? (
         <p>No verification requests found.</p>
       ) : (
-        requests.map((req) => (
-          <div key={req._id} className="border p-4 mb-4 rounded-md">
-            <div className="flex flex-col gap-2">
-              <strong>{req.user.name}</strong>
-              <span>{req.user.email}</span>
-              <span>Status: {req.status}</span>
-
-              <div>
-                Balance:
-                {editBalanceId === req.user._id ? (
-                  <>
-                    <input
-                      type="number"
-                      value={balances[req.user._id] || req.user.balance}
-                      onChange={(e) => handleBalanceChange(req.user._id, e.target.value)}
-                      className="border p-1 mx-2"
-                    />
-                    <button
-                      onClick={() => updateBalance(req.user._id)}
-                      disabled={balanceUpdating === req.user._id}
-                      className="bg-blue-500 text-white px-3 py-1 rounded"
-                    >
-                      {balanceUpdating === req.user._id ? "Updating..." : "Save"}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <span className="mx-2">₦{req.user.balance}</span>
-                    <button
-                      onClick={() => setEditBalanceId(req.user._id)}
-                      className="text-blue-600 underline"
-                    >
-                      Edit
-                    </button>
-                  </>
-                )}
+        <div className="space-y-6">
+          {requests.map((req) => (
+            <div key={req._id} className="p-4 border rounded">
+              <h3 className="font-bold">{req.user.name}</h3>
+              <p>Email: {req.user.email}</p>
+              <p>Status: {req.status}</p>
+              <p>Balance: ₦{req.user.balance}</p>
+              <div className="flex flex-col gap-2 mt-4">
+                <img
+                  src={req.frontId}
+                  alt="Front ID"
+                  className="w-full max-w-xs rounded border"
+                />
+                <img
+                  src={req.backId}
+                  alt="Back ID"
+                  className="w-full max-w-xs rounded border"
+                />
               </div>
-
-              <div className="flex gap-4 mt-2">
+              <div className="mt-4 flex gap-2">
                 <button
-                  onClick={() => updateStatus(req._id, "approved")}
-                  disabled={statusUpdating === req._id}
-                  className="bg-green-500 text-white px-3 py-1 rounded"
+                  onClick={async () => {
+                    try {
+                      await axios.patch(`/verification/${req._id}`, {
+                        status: "approved",
+                      });
+                      toast.success("Approved");
+                      setRequests((prev) =>
+                        prev.map((r) =>
+                          r._id === req._id ? { ...r, status: "approved" } : r
+                        )
+                      );
+                    } catch (err) {
+                      toast.error("Failed to approve");
+                    }
+                  }}
+                  className="bg-green-600 text-white px-4 py-1 rounded"
                 >
-                  {statusUpdating === req._id ? "Processing..." : "Approve"}
+                  Approve
                 </button>
                 <button
-                  onClick={() => updateStatus(req._id, "declined")}
-                  disabled={statusUpdating === req._id}
-                  className="bg-red-500 text-white px-3 py-1 rounded"
+                  onClick={async () => {
+                    try {
+                      await axios.patch(`/verification/${req._id}`, {
+                        status: "declined",
+                      });
+                      toast.success("Declined");
+                      setRequests((prev) =>
+                        prev.map((r) =>
+                          r._id === req._id ? { ...r, status: "declined" } : r
+                        )
+                      );
+                    } catch (err) {
+                      toast.error("Failed to decline");
+                    }
+                  }}
+                  className="bg-red-600 text-white px-4 py-1 rounded"
                 >
-                  {statusUpdating === req._id ? "Processing..." : "Decline"}
+                  Decline
                 </button>
               </div>
             </div>
-          </div>
-        ))
+          ))}
+        </div>
       )}
     </div>
   );
