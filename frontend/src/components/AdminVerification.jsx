@@ -14,7 +14,7 @@ const AdminVerification = ({ request = null, onUpdate = () => {}, delay = 0 }) =
   const [newBalance, setNewBalance] = useState(0);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [imageLoadErrors, setImageLoadErrors] = useState({});
+  // const [imageLoadErrors, setImageLoadErrors] = useState({});
   const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
@@ -58,8 +58,8 @@ const AdminVerification = ({ request = null, onUpdate = () => {}, delay = 0 }) =
     }
   };
 
-  const handleImageError = (type) =>
-    setImageLoadErrors((prev) => ({ ...prev, [type]: true }));
+  // const handleImageError = (type) =>
+  //   setImageLoadErrors((prev) => ({ ...prev, [type]: true }));
 
   if (!showDetails || !localRequest) return <CardSkeleton />;
 
@@ -77,7 +77,7 @@ const AdminVerification = ({ request = null, onUpdate = () => {}, delay = 0 }) =
         userBalance={localRequest.user.balance}
       />
 
-      <div className="flex flex-col gap-4 mt-4">
+      {/* <div className="flex flex-col gap-4 mt-4">
         <Suspense fallback={<div>Loading front ID...</div>}>
           <FrontID
             src={localRequest.frontId}
@@ -93,7 +93,7 @@ const AdminVerification = ({ request = null, onUpdate = () => {}, delay = 0 }) =
             error={imageLoadErrors.backId}
           />
         </Suspense>
-      </div>
+      </div> */}
 
       <VerifyActions
         onApprove={() => handleStatusUpdate("approved")}
