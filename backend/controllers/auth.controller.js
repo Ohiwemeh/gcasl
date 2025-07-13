@@ -20,6 +20,7 @@ const generateTokens = (userId) => {
   return { accessToken, refreshToken };
 };
 
+
 // Optionally store the refresh token in Redis
 const storeRefreshToken = async (userId, refreshToken) => {
   await redis.set(`refresh_token:${userId}`, refreshToken, "EX", 7 * 24 * 60 * 60);
