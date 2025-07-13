@@ -23,7 +23,7 @@ const BackID = ({ src, onError, error }) =>
         rel="noopener noreferrer"
         className="text-blue-600 underline text-sm"
       >
-        Download Front ID
+        Download Back ID
       </a>
     </>
   );
