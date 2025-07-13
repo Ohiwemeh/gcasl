@@ -77,7 +77,7 @@ const AdminVerification = ({ request = null, onUpdate = () => {}, delay = 0 }) =
         userBalance={localRequest.user.balance}
       />
 
-      {/* <div className="flex flex-col gap-4 mt-4">
+      <div className="flex flex-col gap-4 mt-4">
         <Suspense fallback={<div>Loading front ID...</div>}>
           <FrontID
             src={localRequest.frontId}
@@ -93,7 +93,7 @@ const AdminVerification = ({ request = null, onUpdate = () => {}, delay = 0 }) =
             error={imageLoadErrors.backId}
           />
         </Suspense>
-      </div> */}
+      </div>
 
       <VerifyActions
         onApprove={() => handleStatusUpdate("approved")}
